@@ -95,6 +95,18 @@ assert (d.getHours() == 1);
 assert (d.getMinutes() == 1);
 assert (d.getSeconds() == 1);
 d.setTime(0);
+assert (d.setHours(1) == hour + d.getTimezoneOffset() * 60000);
+assert (d.getHours() == 1);
+d.setTime(0);
+assert (d.setHours(1, 1) == hour + min + d.getTimezoneOffset() * 60000);
+assert (d.getHours() == 1);
+assert (d.getMinutes() == 1);
+d.setTime(0);
+assert (d.setHours(1, 1, 1) == hour + min + sec + d.getTimezoneOffset() * 60000);
+assert (d.getHours() == 1);
+assert (d.getMinutes() == 1);
+assert (d.getSeconds() == 1)
+d.setTime(0);
 assert (d.setHours(1, 1, 1, 1) == hour + min + sec + ms + d.getTimezoneOffset() * 60000);
 assert (d.getHours() == 1);
 assert (d.getMinutes() == 1);
