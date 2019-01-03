@@ -628,8 +628,10 @@ ecma_builtin_array_prototype_object_reverse (ecma_value_t this_arg) /**< this ar
     /* 6.h */
     if (lower_exist && upper_exist)
     {
-      ECMA_TRY_CATCH (outer_put_value, ecma_op_object_put (obj_p, lower_str_p, upper_value, true), ret_value);
-      ECMA_TRY_CATCH (inner_put_value, ecma_op_object_put (obj_p, upper_str_p, lower_value, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (outer_put_value, ecma_op_object_put (obj_p, lower_str_p, upper_value), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (inner_put_value, ecma_op_object_put (obj_p, upper_str_p, lower_value), ret_value);
       ECMA_FINALIZE (inner_put_value);
       ECMA_FINALIZE (outer_put_value);
     }

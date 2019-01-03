@@ -62,6 +62,7 @@ typedef enum
   ECMA_STATUS_HIGH_SEV_GC       = (1u << 2), /**< last gc run was a high severity run */
 #endif /* !CONFIG_ECMA_PROPERTY_HASHMAP_DISABLE */
   ECMA_STATUS_EXCEPTION         = (1u << 3), /**< last exception is a normal exception */
+  ECMA_STATUS_PUT_THROW         = (1u << 4), /**< the current put operation must throw an error */
 } ecma_status_flag_t;
 
 /**
@@ -708,6 +709,26 @@ typedef enum
   { \
     JERRY_CONTEXT (status_flags) &= ((1 << ECMA_SUPER_EVAL_OPTS_OFFSET) - 1); \
   } while (0)
+
+/**
+ * Throw an exception if the current property put operation fails
+ */
+#define ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION() \
+  do \
+  { \
+    JERRY_CONTEXT (status_flags) |= ECMA_STATUS_PUT_THROW; \
+  } \
+  while (0)
+
+/**
+ * Absorb all exceptions during the current property put operation
+ */
+#define ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION() \
+  do \
+  { \
+    JERRY_CONTEXT (status_flags) &= (uint32_t) ~ECMA_STATUS_PUT_THROW; \
+  } \
+  while (0)
 
 /**
  * Ecma object type mask for getting the object type.

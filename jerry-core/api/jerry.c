@@ -1970,10 +1970,10 @@ jerry_set_property (const jerry_value_t obj_val, /**< object value */
     return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
   }
 
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   return jerry_return (ecma_op_object_put (ecma_get_object_from_value (obj_val),
                                            ecma_get_string_from_value (prop_name_val),
-                                           value_to_set,
-                                           true));
+                                           value_to_set));
 } /* jerry_set_property */
 
 /**

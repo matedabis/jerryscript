@@ -915,10 +915,10 @@ static ecma_value_t ecma_builtin_json_str_helper (const ecma_value_t arg1, /**< 
   ecma_value_t ret_value = ECMA_VALUE_EMPTY;
   ecma_object_t *obj_wrapper_p = ecma_op_create_object_object_noarg ();
   ecma_string_t *empty_str_p = ecma_get_magic_string (LIT_MAGIC_STRING__EMPTY);
+  ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
   ecma_value_t put_comp_val = ecma_op_object_put (obj_wrapper_p,
                                                   empty_str_p,
-                                                  arg1,
-                                                  false);
+                                                  arg1);
 
   if (ecma_is_value_true (put_comp_val))
   {

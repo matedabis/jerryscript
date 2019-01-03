@@ -741,8 +741,7 @@ ecma_op_object_get_by_magic_id (ecma_object_t *object_p, /**< the object */
 ecma_value_t
 ecma_op_object_put (ecma_object_t *object_p, /**< the object */
                     ecma_string_t *property_name_p, /**< property name */
-                    ecma_value_t value, /**< ecma value */
-                    bool is_throw) /**< flag that controls failure handling */
+                    ecma_value_t value) /**< ecma value */
 {
   JERRY_ASSERT (object_p != NULL
                 && !ecma_is_lexical_environment (object_p));

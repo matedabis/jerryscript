@@ -22,6 +22,7 @@
 #include "ecma-objects.h"
 #include "ecma-objects-general.h"
 #include "ecma-try-catch-macro.h"
+#include "jcontext.h"
 
 /** \addtogroup ecma ECMA
  * @{
@@ -39,7 +40,8 @@
 ecma_value_t
 ecma_reject (bool is_throw) /**< Throw flag */
 {
-  if (is_throw)
+  JERRY_UNUSED (is_throw);
+  if (JERRY_CONTEXT (status_flags) & ECMA_STATUS_PUT_THROW)
   {
     return ecma_raise_type_error (ECMA_ERR_MSG ("Invalid argument type."));
   }
