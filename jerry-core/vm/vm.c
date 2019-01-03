@@ -178,10 +178,17 @@ vm_op_set_value (ecma_value_t object, /**< base object */
 
   if (!ecma_is_lexical_environment (object_p))
   {
+    if (is_strict)
+    {
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+    }
+    else
+    {
+      ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
+    }
     completion_value = ecma_op_object_put (object_p,
                                            property_p,
-                                           value,
-                                           is_strict);
+                                           value);
   }
   else
   {

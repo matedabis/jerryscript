@@ -61,10 +61,10 @@ ecma_builtin_array_prototype_helper_set_length (ecma_object_t *object, /**< obje
   ecma_value_t ret_value;
 
   ecma_value_t length_value = ecma_make_number_value (length);
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   ret_value = ecma_op_object_put (object,
                                   ecma_get_magic_string (LIT_MAGIC_STRING_LENGTH),
-                                  length_value,
-                                  true);
+                                  length_value);
 
   ecma_free_value (length_value);
   return ret_value;
@@ -484,7 +484,8 @@ ecma_builtin_array_prototype_object_pop (ecma_value_t this_arg) /**< this argume
     ECMA_TRY_CATCH (get_value, ecma_op_object_get (obj_p, index_str_p), ret_value);
 
     /* 5.c */
-    ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, index_str_p, true), ret_value);
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+    ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, index_str_p), ret_value);
 
     /* 5.d */
     ECMA_TRY_CATCH (set_length_value,
@@ -549,7 +550,8 @@ ecma_builtin_array_prototype_object_push (ecma_value_t this_arg, /**< this argum
     /* 5.b */
     ecma_string_t *n_str_p = ecma_new_ecma_string_from_number (n);
 
-    ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, n_str_p, e_value, true), ret_value);
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+    ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, n_str_p, e_value), ret_value);
     ECMA_FINALIZE (put_value);
 
     ecma_deref_ecma_string (n_str_p);
@@ -628,24 +630,30 @@ ecma_builtin_array_prototype_object_reverse (ecma_value_t this_arg) /**< this ar
     /* 6.h */
     if (lower_exist && upper_exist)
     {
-      ECMA_TRY_CATCH (outer_put_value, ecma_op_object_put (obj_p, lower_str_p, upper_value, true), ret_value);
-      ECMA_TRY_CATCH (inner_put_value, ecma_op_object_put (obj_p, upper_str_p, lower_value, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (outer_put_value, ecma_op_object_put (obj_p, lower_str_p, upper_value), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (inner_put_value, ecma_op_object_put (obj_p, upper_str_p, lower_value), ret_value);
       ECMA_FINALIZE (inner_put_value);
       ECMA_FINALIZE (outer_put_value);
     }
     /* 6.i */
     else if (!lower_exist && upper_exist)
     {
-      ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, lower_str_p, upper_value, true), ret_value);
-      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, upper_str_p, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, lower_str_p, upper_value), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, upper_str_p), ret_value);
       ECMA_FINALIZE (del_value);
       ECMA_FINALIZE (put_value);
     }
     /* 6.j */
     else if (lower_exist && !upper_exist)
     {
-      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, lower_str_p, true), ret_value);
-      ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, upper_str_p, lower_value, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, lower_str_p), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, upper_str_p, lower_value), ret_value);
       ECMA_FINALIZE (put_value);
       ECMA_FINALIZE (del_value);
     }
@@ -732,14 +740,16 @@ ecma_builtin_array_prototype_object_shift (ecma_value_t this_arg) /**< this argu
       if (ecma_is_value_found (curr_value))
       {
         /* 7.d.i, 7.d.ii */
-        ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, to_str_p, curr_value, true), ret_value);
+        ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+        ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, to_str_p, curr_value), ret_value);
 
         ECMA_FINALIZE (put_value);
       }
       else
       {
         /* 7.e.i */
-        ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, to_str_p, true), ret_value);
+        ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+        ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, to_str_p), ret_value);
         ECMA_FINALIZE (del_value);
       }
 
@@ -755,7 +765,8 @@ ecma_builtin_array_prototype_object_shift (ecma_value_t this_arg) /**< this argu
       ecma_string_t *len_str_p = ecma_new_ecma_string_from_uint32 (len);
 
       /* 8. */
-      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, len_str_p, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, len_str_p), ret_value);
 
       /* 9. */
       ECMA_TRY_CATCH (set_length_value,
@@ -872,12 +883,11 @@ ecma_builtin_array_prototype_object_slice (ecma_value_t this_arg, /**< 'this' ar
       ecma_string_t *to_idx_str_p = ecma_new_ecma_string_from_uint32 (n);
 
       /* 10.c.ii */
-      /* This will always be a simple value since 'is_throw' is false, so no need to free. */
+      ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
       ecma_value_t put_comp = ecma_builtin_helper_def_prop (new_array_p,
                                                             to_idx_str_p,
                                                             get_value,
-                                                            ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                            false); /* Failure handling */
+                                                            ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE); /* Failure handling */
       JERRY_ASSERT (ecma_is_value_true (put_comp));
 
       ecma_deref_ecma_string (to_idx_str_p);
@@ -1119,8 +1129,9 @@ ecma_builtin_array_prototype_object_sort (ecma_value_t this_arg, /**< this argum
        index++)
   {
     ecma_string_t *index_string_p = ecma_new_ecma_string_from_uint32 (index);
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
     ECMA_TRY_CATCH (put_value,
-                    ecma_op_object_put (obj_p, index_string_p, values_buffer[index], true),
+                    ecma_op_object_put (obj_p, index_string_p, values_buffer[index]),
                     ret_value);
     ECMA_FINALIZE (put_value);
     ecma_deref_ecma_string (index_string_p);
@@ -1148,7 +1159,8 @@ ecma_builtin_array_prototype_object_sort (ecma_value_t this_arg, /**< this argum
 
     if (index >= copied_num && index < len)
     {
-      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, property_name_p, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, property_name_p), ret_value);
       ECMA_FINALIZE (del_value);
     }
   }
@@ -1291,12 +1303,11 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
       ecma_string_t *idx_str_new_p = ecma_new_ecma_string_from_uint32 (k);
 
       /* 9.c.ii */
-      /* This will always be a simple value since 'is_throw' is false, so no need to free. */
+      ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
       ecma_value_t put_comp = ecma_builtin_helper_def_prop (new_array_p,
                                                             idx_str_new_p,
                                                             get_value,
-                                                            ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                            false); /* Failure handling */
+                                                            ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
       JERRY_ASSERT (ecma_is_value_true (put_comp));
 
       ecma_deref_ecma_string (idx_str_new_p);
@@ -1343,8 +1354,9 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
         if (ecma_is_value_found (get_value))
         {
           /* 12.b.iv */
+          ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
           ECMA_TRY_CATCH (put_value,
-                          ecma_op_object_put (obj_p, to_str_p, get_value, true),
+                          ecma_op_object_put (obj_p, to_str_p, get_value),
                           ret_value);
 
           ECMA_FINALIZE (put_value);
@@ -1352,8 +1364,9 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
         else
         {
           /* 12.b.v */
+          ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
           ECMA_TRY_CATCH (del_value,
-                          ecma_op_object_delete (obj_p, to_str_p, true),
+                          ecma_op_object_delete (obj_p, to_str_p),
                           ret_value);
 
           ECMA_FINALIZE (del_value);
@@ -1369,8 +1382,9 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
       for (k = len; k > new_len && ecma_is_value_empty (ret_value); k--)
       {
         ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 (k - 1);
+        ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
         ECMA_TRY_CATCH (del_value,
-                        ecma_op_object_delete (obj_p, str_idx_p, true),
+                        ecma_op_object_delete (obj_p, str_idx_p),
                         ret_value);
 
         ECMA_FINALIZE (del_value);
@@ -1395,8 +1409,9 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
         if (ecma_is_value_found (get_value))
         {
           /* 13.b.iv */
+          ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
           ECMA_TRY_CATCH (put_value,
-                          ecma_op_object_put (obj_p, to_str_p, get_value, true),
+                          ecma_op_object_put (obj_p, to_str_p, get_value),
                           ret_value);
 
           ECMA_FINALIZE (put_value);
@@ -1404,8 +1419,9 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
         else
         {
           /* 13.b.v */
+          ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
           ECMA_TRY_CATCH (del_value,
-                          ecma_op_object_delete (obj_p, to_str_p, true),
+                          ecma_op_object_delete (obj_p, to_str_p),
                           ret_value);
 
           ECMA_FINALIZE (del_value);
@@ -1426,8 +1442,9 @@ ecma_builtin_array_prototype_object_splice (ecma_value_t this_arg, /**< this arg
        arg_index++, idx++)
   {
     ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 ((uint32_t) (start + idx));
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
     ECMA_TRY_CATCH (put_value,
-                    ecma_op_object_put (obj_p, str_idx_p, args[arg_index], true),
+                    ecma_op_object_put (obj_p, str_idx_p, args[arg_index]),
                     ret_value);
 
     ECMA_FINALIZE (put_value);
@@ -1508,14 +1525,16 @@ ecma_builtin_array_prototype_object_unshift (ecma_value_t this_arg, /**< this ar
     if (ecma_is_value_found (get_value))
     {
       /* 6.d.i, 6.d.ii */
-      ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, to_str_p, get_value, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, to_str_p, get_value), ret_value);
 
       ECMA_FINALIZE (put_value);
     }
     else
     {
       /* 6.e.i */
-      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, to_str_p, true), ret_value);
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+      ECMA_TRY_CATCH (del_value, ecma_op_object_delete (obj_p, to_str_p), ret_value);
       ECMA_FINALIZE (del_value);
     }
 
@@ -1531,7 +1550,8 @@ ecma_builtin_array_prototype_object_unshift (ecma_value_t this_arg, /**< this ar
   {
     ecma_string_t *to_str_p = ecma_new_ecma_string_from_uint32 (arg_index);
     /* 9.b */
-    ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, to_str_p, args[arg_index], true), ret_value);
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+    ECMA_TRY_CATCH (put_value, ecma_op_object_put (obj_p, to_str_p, args[arg_index]), ret_value);
     ECMA_FINALIZE (put_value);
     ecma_deref_ecma_string (to_str_p);
   }
@@ -2044,12 +2064,11 @@ ecma_builtin_array_prototype_object_map (ecma_value_t this_arg, /**< this argume
         ECMA_TRY_CATCH (mapped_value, ecma_op_function_call (func_object_p, arg2, call_args, 3), ret_value);
 
         /* 8.c.iii */
-        /* This will always be a simple value since 'is_throw' is false, so no need to free. */
+        ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
         ecma_value_t put_comp = ecma_builtin_helper_def_prop (new_array_p,
                                                               index_str_p,
                                                               mapped_value,
-                                                              ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                              false); /* Failure handling */
+                                                              ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
         JERRY_ASSERT (ecma_is_value_true (put_comp));
 
         ECMA_FINALIZE (mapped_value);
@@ -2171,12 +2190,11 @@ ecma_builtin_array_prototype_object_filter (ecma_value_t this_arg, /**< this arg
         {
           ecma_string_t *to_index_string_p = ecma_new_ecma_string_from_uint32 (new_array_index);
 
-          /* This will always be a simple value since 'is_throw' is false, so no need to free. */
+          ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
           ecma_value_t put_comp = ecma_builtin_helper_def_prop (new_array_p,
                                                                 to_index_string_p,
                                                                 get_value,
-                                                                ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                                false); /* Failure handling */
+                                                                ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
           JERRY_ASSERT (ecma_is_value_true (put_comp));
 
           ecma_deref_ecma_string (to_index_string_p);

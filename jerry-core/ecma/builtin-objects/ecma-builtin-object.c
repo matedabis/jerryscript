@@ -349,11 +349,11 @@ ecma_builtin_object_object_seal (ecma_value_t this_arg, /**< 'this' argument */
       prop_desc.is_configurable = false;
 
       /* 2.c */
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
       ECMA_TRY_CATCH (define_own_prop_ret,
                       ecma_op_object_define_own_property (obj_p,
                                                           property_name_p,
-                                                          &prop_desc,
-                                                          true),
+                                                          &prop_desc),
                       ret_value);
       ECMA_FINALIZE (define_own_prop_ret);
 
@@ -428,11 +428,11 @@ ecma_builtin_object_object_freeze (ecma_value_t this_arg, /**< 'this' argument *
       prop_desc.is_configurable = false;
 
       /* 2.d */
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
       ECMA_TRY_CATCH (define_own_prop_ret,
                       ecma_op_object_define_own_property (obj_p,
                                                           property_name_p,
-                                                          &prop_desc,
-                                                          true),
+                                                          &prop_desc),
                       ret_value);
       ECMA_FINALIZE (define_own_prop_ret);
 
@@ -830,11 +830,11 @@ ecma_builtin_object_object_define_properties (ecma_value_t this_arg, /**< 'this'
          index < property_number && ecma_is_value_empty (ret_value);
          index++)
     {
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
       ECMA_TRY_CATCH (define_own_prop_ret,
                       ecma_op_object_define_own_property (obj_p,
                                                           ecma_get_string_from_value (*ecma_value_p),
-                                                          &property_descriptors[index],
-                                                          true),
+                                                          &property_descriptors[index]),
                       ret_value);
 
       ECMA_FINALIZE (define_own_prop_ret);
@@ -904,11 +904,11 @@ ecma_builtin_object_object_define_property (ecma_value_t this_arg, /**< 'this' a
                     ecma_op_to_property_descriptor (arg3, &prop_desc),
                     ret_value);
 
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
     ECMA_TRY_CATCH (define_own_prop_ret,
                     ecma_op_object_define_own_property (obj_p,
                                                         name_str_p,
-                                                        &prop_desc,
-                                                        true),
+                                                        &prop_desc),
                     ret_value);
 
     ret_value = ecma_copy_value (arg1);

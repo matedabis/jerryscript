@@ -1861,10 +1861,9 @@ jerry_delete_property (const jerry_value_t obj_val, /**< object value */
   {
     return false;
   }
-
+  ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
   ecma_value_t ret_value = ecma_op_object_delete (ecma_get_object_from_value (obj_val),
-                                                  ecma_get_string_from_value (prop_name_val),
-                                                  false);
+                                                  ecma_get_string_from_value (prop_name_val));
   return ecma_is_value_true (ret_value);
 } /* jerry_delete_property */
 
@@ -1886,9 +1885,9 @@ jerry_delete_property_by_index (const jerry_value_t obj_val, /**< object value *
   }
 
   ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 (index);
+  ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
   ecma_value_t ret_value = ecma_op_object_delete (ecma_get_object_from_value (obj_val),
-                                                  str_idx_p,
-                                                  false);
+                                                  str_idx_p);
   ecma_deref_ecma_string (str_idx_p);
 
   return ecma_is_value_true (ret_value);
@@ -1970,10 +1969,10 @@ jerry_set_property (const jerry_value_t obj_val, /**< object value */
     return jerry_throw (ecma_raise_type_error (ECMA_ERR_MSG (wrong_args_msg_p)));
   }
 
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   return jerry_return (ecma_op_object_put (ecma_get_object_from_value (obj_val),
                                            ecma_get_string_from_value (prop_name_val),
-                                           value_to_set,
-                                           true));
+                                           value_to_set));
 } /* jerry_set_property */
 
 /**
@@ -1999,10 +1998,10 @@ jerry_set_property_by_index (const jerry_value_t obj_val, /**< object value */
   }
 
   ecma_string_t *str_idx_p = ecma_new_ecma_string_from_uint32 ((uint32_t) index);
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   ecma_value_t ret_value = ecma_op_object_put (ecma_get_object_from_value (obj_val),
                                                str_idx_p,
-                                               value_to_set,
-                                               true);
+                                               value_to_set);
   ecma_deref_ecma_string (str_idx_p);
 
   return jerry_return (ret_value);
@@ -2124,10 +2123,10 @@ jerry_define_own_property (const jerry_value_t obj_val, /**< object value */
     }
   }
 
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   return ecma_op_object_define_own_property (ecma_get_object_from_value (obj_val),
                                              ecma_get_string_from_value (prop_name_val),
-                                             &prop_desc,
-                                             true);
+                                             &prop_desc);
 } /* jerry_define_own_property */
 
 /**

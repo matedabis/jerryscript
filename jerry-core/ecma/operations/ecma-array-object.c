@@ -116,12 +116,11 @@ ecma_op_create_array_object (const ecma_value_t *arguments_list_p, /**< list of 
 
     ecma_string_t *item_name_string_p = ecma_new_ecma_string_from_uint32 (index);
 
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_builtin_helper_def_prop (object_p,
                                   item_name_string_p,
                                   array_items_p[index],
-                                  ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                  false); /* Failure handling */
-
+                                  ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
     ecma_deref_ecma_string (item_name_string_p);
   }
 
@@ -172,7 +171,6 @@ ecma_op_array_object_set_length (ecma_object_t *object_p, /**< the array object 
                                  ecma_value_t new_value, /**< new length value */
                                  uint32_t flags) /**< configuration options */
 {
-  bool is_throw = (flags & ECMA_ARRAY_OBJECT_SET_LENGTH_FLAG_IS_THROW);
 
   ecma_value_t completion = ecma_op_to_number (new_value);
 
@@ -210,7 +208,7 @@ ecma_op_array_object_set_length (ecma_object_t *object_p, /**< the array object 
 
   if (flags & ECMA_ARRAY_OBJECT_SET_LENGTH_FLAG_REJECT)
   {
-    return ecma_reject (is_throw);
+    return ecma_reject ();
   }
 
   ecma_extended_object_t *ext_object_p = (ecma_extended_object_t *) object_p;
@@ -229,14 +227,14 @@ ecma_op_array_object_set_length (ecma_object_t *object_p, /**< the array object 
       }
       else if (!ecma_is_property_writable (ext_object_p->u.array.length_prop))
       {
-        return ecma_reject (is_throw);
+        return ecma_reject ();
       }
     }
     return ECMA_VALUE_TRUE;
   }
   else if (!ecma_is_property_writable (ext_object_p->u.array.length_prop))
   {
-    return ecma_reject (is_throw);
+    return ecma_reject ();
   }
 
   uint32_t current_len_uint32 = new_len_uint32;
@@ -259,7 +257,7 @@ ecma_op_array_object_set_length (ecma_object_t *object_p, /**< the array object 
   {
     return ECMA_VALUE_TRUE;
   }
-  return ecma_reject (is_throw);
+  return ecma_reject ();
 } /* ecma_op_array_object_set_length */
 
 /**
@@ -275,8 +273,7 @@ ecma_op_array_object_set_length (ecma_object_t *object_p, /**< the array object 
 ecma_value_t
 ecma_op_array_object_define_own_property (ecma_object_t *object_p, /**< the array object */
                                           ecma_string_t *property_name_p, /**< property name */
-                                          const ecma_property_descriptor_t *property_desc_p, /**< property descriptor */
-                                          bool is_throw) /**< flag that controls failure handling */
+                                          const ecma_property_descriptor_t *property_desc_p) /**< property descriptor */
 {
   if (ecma_string_is_length (property_name_p))
   {
@@ -286,7 +283,7 @@ ecma_op_array_object_define_own_property (ecma_object_t *object_p, /**< the arra
 
     uint32_t flags = 0;
 
-    if (is_throw)
+    if (JERRY_CONTEXT (status_flags) & ECMA_STATUS_PUT_THROW)
     {
       flags |= ECMA_ARRAY_OBJECT_SET_LENGTH_FLAG_IS_THROW;
     }
@@ -328,7 +325,7 @@ ecma_op_array_object_define_own_property (ecma_object_t *object_p, /**< the arra
 
   if (index == ECMA_STRING_NOT_ARRAY_INDEX)
   {
-    return ecma_op_general_object_define_own_property (object_p, property_name_p, property_desc_p, is_throw);
+    return ecma_op_general_object_define_own_property (object_p, property_name_p, property_desc_p);
   }
 
   ecma_extended_object_t *ext_object_p = (ecma_extended_object_t *) object_p;
@@ -337,18 +334,18 @@ ecma_op_array_object_define_own_property (ecma_object_t *object_p, /**< the arra
 
   if (update_length && !ecma_is_property_writable (ext_object_p->u.array.length_prop))
   {
-    return ecma_reject (is_throw);
+    return ecma_reject ();
   }
 
+  ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
   ecma_value_t completition = ecma_op_general_object_define_own_property (object_p,
                                                                           property_name_p,
-                                                                          property_desc_p,
-                                                                          false);
+                                                                          property_desc_p);
   JERRY_ASSERT (ecma_is_value_boolean (completition));
 
   if (ecma_is_value_false (completition))
   {
-    return ecma_reject (is_throw);
+    return ecma_reject ();
   }
 
   if (update_length)

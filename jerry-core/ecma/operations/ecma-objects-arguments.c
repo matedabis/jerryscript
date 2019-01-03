@@ -168,17 +168,17 @@ ecma_op_create_arguments_object (ecma_object_t *func_obj_p, /**< callee function
       prop_desc.is_configurable = false;
     }
 
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_value_t completion = ecma_op_object_define_own_property (obj_p,
                                                                   ecma_get_magic_string (LIT_MAGIC_STRING_CALLEE),
-                                                                  &prop_desc,
-                                                                  false);
+                                                                  &prop_desc);
 
     JERRY_ASSERT (ecma_is_value_true (completion));
 
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     completion = ecma_op_object_define_own_property (obj_p,
                                                      ecma_get_magic_string (LIT_MAGIC_STRING_CALLER),
-                                                     &prop_desc,
-                                                     false);
+                                                     &prop_desc);
     JERRY_ASSERT (ecma_is_value_true (completion));
   }
 
@@ -221,15 +221,14 @@ ecma_op_create_arguments_object (ecma_object_t *func_obj_p, /**< callee function
 ecma_value_t
 ecma_op_arguments_object_define_own_property (ecma_object_t *object_p, /**< the object */
                                               ecma_string_t *property_name_p, /**< property name */
-                                              const ecma_property_descriptor_t *property_desc_p, /**< property
+                                              const ecma_property_descriptor_t *property_desc_p) /**< property
                                                                                                   *   descriptor */
-                                              bool is_throw) /**< flag that controls failure handling */
+
 {
   /* 3. */
   ecma_value_t ret_value = ecma_op_general_object_define_own_property (object_p,
                                                                        property_name_p,
-                                                                       property_desc_p,
-                                                                       is_throw);
+                                                                       property_desc_p);
 
   if (ECMA_IS_VALUE_ERROR (ret_value))
   {
@@ -304,11 +303,10 @@ ecma_op_arguments_object_define_own_property (ecma_object_t *object_p, /**< the 
  */
 ecma_value_t
 ecma_op_arguments_object_delete (ecma_object_t *object_p, /**< the object */
-                                 ecma_string_t *property_name_p, /**< property name */
-                                 bool is_throw) /**< flag that controls failure handling */
+                                 ecma_string_t *property_name_p) /**< property name */
 {
   /* 3. */
-  ecma_value_t ret_value = ecma_op_general_object_delete (object_p, property_name_p, is_throw);
+  ecma_value_t ret_value = ecma_op_general_object_delete (object_p, property_name_p);
 
   if (ECMA_IS_VALUE_ERROR (ret_value))
   {

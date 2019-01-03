@@ -339,10 +339,10 @@ ecma_builtin_promise_all_handler (const ecma_value_t function, /**< the function
   }
 
   /* 3. */
+  ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
   ecma_op_object_put (function_p,
                       already_called_str_p,
-                      ECMA_VALUE_TRUE,
-                      false);
+                      ECMA_VALUE_TRUE);
 
   ecma_string_t *str_index_p = ecma_get_magic_string (LIT_INTERNAL_MAGIC_STRING_PROMISE_PROPERTY_INDEX);
   ecma_string_t *str_value_p = ecma_get_magic_string (LIT_INTERNAL_MAGIC_STRING_PROMISE_PROPERTY_VALUE);
@@ -360,10 +360,10 @@ ecma_builtin_promise_all_handler (const ecma_value_t function, /**< the function
   /* 8. */
   ecma_string_t *index_to_str_p = ecma_new_ecma_string_from_uint32 ((uint32_t) ecma_get_integer_from_value (index_val));
 
+  ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
   ecma_op_object_put (ecma_get_object_from_value (value_array),
                       index_to_str_p,
-                      argv[0],
-                      false);
+                      argv[0]);
   ecma_deref_ecma_string (index_to_str_p);
 
   /* 9-10. */
@@ -470,10 +470,10 @@ ecma_builtin_promise_do_all (ecma_value_t array, /**< the array for all */
     /* e. h. */
     ecma_string_t *index_to_str_p = ecma_new_ecma_string_from_uint32 (index);
     ecma_value_t array_item = ecma_op_object_get (array_p, index_to_str_p);
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_value_t put_ret = ecma_op_object_put (ecma_get_object_from_value (value_array),
                                                index_to_str_p,
-                                               undefined_val,
-                                               false);
+                                               undefined_val);
     ecma_deref_ecma_string (index_to_str_p);
 
     if (ECMA_IS_VALUE_ERROR (put_ret))
@@ -498,30 +498,30 @@ ecma_builtin_promise_do_all (ecma_value_t array, /**< the array for all */
     ecma_object_t *res_ele_p;
     res_ele_p = ecma_op_create_external_function_object (ecma_builtin_promise_all_handler);
     /* l. */
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_op_object_put (res_ele_p,
                         already_called_str_p,
-                        ECMA_VALUE_FALSE,
-                        false);
+                        ECMA_VALUE_FALSE);
     /* m. */
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_op_object_put (res_ele_p,
                         index_str_p,
-                        ecma_make_uint32_value (index),
-                        false);
+                        ecma_make_uint32_value (index));
     /* n. */
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_op_object_put (res_ele_p,
                         value_str_p,
-                        value_array,
-                        false);
+                        value_array);
     /* o. */
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_op_object_put (res_ele_p,
                         capability_str_p,
-                        capability,
-                        false);
+                        capability);
     /* p. */
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_op_object_put (res_ele_p,
                         remaining_str_p,
-                        remaining,
-                        false);
+                        remaining);
 
     /* q. */
     ecma_builtin_promise_remaining_inc_or_dec (remaining, true);

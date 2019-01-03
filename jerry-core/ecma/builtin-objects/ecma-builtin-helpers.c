@@ -207,11 +207,11 @@ ecma_builtin_helper_object_get_properties (ecma_object_t *obj_p, /**< object */
   {
     ecma_string_t *index_string_p = ecma_new_ecma_string_from_uint32 (index);
 
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_value_t completion = ecma_builtin_helper_def_prop (new_array_p,
                                                             index_string_p,
                                                             *ecma_value_p,
-                                                            ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                            false); /* Failure handling */
+                                                            ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
 
     JERRY_ASSERT (ecma_is_value_true (completion));
 
@@ -353,12 +353,11 @@ ecma_builtin_helper_array_concat_value (ecma_object_t *obj_p, /**< array */
         ecma_string_t *new_array_index_string_p = ecma_new_ecma_string_from_uint32 (*length_p + array_index);
 
         /* 5.b.iii.3.b */
-        /* This will always be a simple value since 'is_throw' is false, so no need to free. */
+        ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
         ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
                                                               new_array_index_string_p,
                                                               get_value,
-                                                              ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                              false);  /* Failure handling */
+                                                              ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
 
         JERRY_ASSERT (ecma_is_value_true (put_comp));
         ecma_deref_ecma_string (new_array_index_string_p);
@@ -379,12 +378,11 @@ ecma_builtin_helper_array_concat_value (ecma_object_t *obj_p, /**< array */
     ecma_string_t *new_array_index_string_p = ecma_new_ecma_string_from_uint32 ((*length_p)++);
 
     /* 5.c.i */
-    /* This will always be a simple value since 'is_throw' is false, so no need to free. */
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
     ecma_value_t put_comp = ecma_builtin_helper_def_prop (obj_p,
                                                           new_array_index_string_p,
                                                           value,
-                                                          ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                                          false);  /* Failure handling */
+                                                          ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
 
     JERRY_ASSERT (ecma_is_value_true (put_comp));
 
@@ -653,8 +651,7 @@ ecma_value_t
 ecma_builtin_helper_def_prop (ecma_object_t *obj_p, /**< object */
                               ecma_string_t *index_p, /**< index string */
                               ecma_value_t value, /**< value */
-                              uint32_t opts, /**< any combination of ecma_property_flag_t bits */
-                              bool is_throw) /**< is_throw */
+                              uint32_t opts) /**< any combination of ecma_property_flag_t bits */
 {
   ecma_property_descriptor_t prop_desc = ecma_make_empty_property_descriptor ();
 
@@ -672,8 +669,7 @@ ecma_builtin_helper_def_prop (ecma_object_t *obj_p, /**< object */
 
   return ecma_op_object_define_own_property (obj_p,
                                              index_p,
-                                             &prop_desc,
-                                             is_throw);
+                                             &prop_desc);
 } /* ecma_builtin_helper_def_prop */
 
 /**

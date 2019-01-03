@@ -178,7 +178,15 @@ vm_op_delete_prop (ecma_value_t object, /**< base object */
   ecma_object_t *obj_p = ecma_get_object_from_value (obj_value);
   JERRY_ASSERT (!ecma_is_lexical_environment (obj_p));
 
-  ecma_value_t delete_op_ret = ecma_op_object_delete (obj_p, name_string_p, is_strict);
+  if (is_strict)
+  {
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+  }
+  else
+  {
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
+  }
+  ecma_value_t delete_op_ret = ecma_op_object_delete (obj_p, name_string_p);
   JERRY_ASSERT (ecma_is_value_boolean (delete_op_ret) || (is_strict == true && ECMA_IS_VALUE_ERROR (delete_op_ret)));
   ecma_free_value (obj_value);
   ecma_free_value (str_name_value);

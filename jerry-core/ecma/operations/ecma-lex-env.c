@@ -152,13 +152,12 @@ ecma_op_create_mutable_binding (ecma_object_t *lex_env_p, /**< lexical environme
       return ECMA_VALUE_EMPTY;
     }
 
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
     completion = ecma_builtin_helper_def_prop (binding_obj_p,
                                                name_p,
                                                ECMA_VALUE_UNDEFINED,
                                                is_deletable ? ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE
-                                                            : ECMA_PROPERTY_ENUMERABLE_WRITABLE,
-                                               true); /* Failure handling */
-
+                                                            : ECMA_PROPERTY_ENUMERABLE_WRITABLE);
     if (ECMA_IS_VALUE_ERROR (completion))
     {
       return completion;
@@ -212,10 +211,17 @@ ecma_op_set_mutable_binding (ecma_object_t *lex_env_p, /**< lexical environment 
 
     ecma_object_t *binding_obj_p = ecma_get_lex_env_binding_object (lex_env_p);
 
+    if (is_strict)
+    {
+      ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
+    }
+    else
+    {
+      ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
+    }
     ecma_value_t completion = ecma_op_object_put (binding_obj_p,
                                                   name_p,
-                                                  value,
-                                                  is_strict);
+                                                  value);
 
     if (ECMA_IS_VALUE_ERROR (completion))
     {
@@ -326,7 +332,8 @@ ecma_op_delete_binding (ecma_object_t *lex_env_p, /**< lexical environment */
 
     ecma_object_t *binding_obj_p = ecma_get_lex_env_binding_object (lex_env_p);
 
-    return ecma_op_object_delete (binding_obj_p, name_p, false);
+    ECMA_PROPERTY_PUT_OPERATION_ABSORB_EXCEPTION ();
+    return ecma_op_object_delete (binding_obj_p, name_p);
   }
 } /* ecma_op_delete_binding */
 

@@ -1139,18 +1139,18 @@ re_set_result_array_properties (ecma_object_t *array_obj_p, /**< result array */
                                 int32_t index) /**< index of matching */
 {
   /* Set index property of the result array */
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   ecma_builtin_helper_def_prop (array_obj_p,
                                 ecma_get_magic_string (LIT_MAGIC_STRING_INDEX),
                                 ecma_make_int32_value (index),
-                                ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                true); /* Failure handling */
+                                ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
 
   /* Set input property of the result array */
+  ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
   ecma_builtin_helper_def_prop (array_obj_p,
                                 ecma_get_magic_string (LIT_MAGIC_STRING_INPUT),
                                 ecma_make_string_value (input_str_p),
-                                ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                true); /* Failure handling */
+                                ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
 
   /* Set length property of the result array */
   {
@@ -1159,10 +1159,10 @@ re_set_result_array_properties (ecma_object_t *array_obj_p, /**< result array */
 
     array_item_prop_desc.value = ecma_make_uint32_value (num_of_elements);
 
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
     ecma_op_object_define_own_property (array_obj_p,
                                         ecma_get_magic_string (LIT_MAGIC_STRING_LENGTH),
-                                        &array_item_prop_desc,
-                                        true);
+                                        &array_item_prop_desc);
   }
 } /* re_set_result_array_properties */
 
@@ -1286,10 +1286,10 @@ ecma_regexp_exec_helper (ecma_value_t regexp_value, /**< RegExp object */
     {
       if (re_ctx.flags & RE_FLAG_GLOBAL)
       {
+        ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
         ecma_op_object_put (regexp_object_p,
                             ecma_get_magic_string (LIT_MAGIC_STRING_LASTINDEX_UL),
-                            ecma_make_integer_value (0),
-                            true);
+                            ecma_make_integer_value (0));
       }
 
       is_match = false;
@@ -1334,10 +1334,10 @@ ecma_regexp_exec_helper (ecma_value_t regexp_value, /**< RegExp object */
       lastindex_num = ECMA_NUMBER_ZERO;
     }
 
+    ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
     ecma_op_object_put (regexp_object_p,
                         ecma_get_magic_string (LIT_MAGIC_STRING_LASTINDEX_UL),
-                        ecma_make_number_value (lastindex_num),
-                        true);
+                        ecma_make_number_value (lastindex_num));
   }
 
   /* 3. Fill the result array or return with 'undefiend' */

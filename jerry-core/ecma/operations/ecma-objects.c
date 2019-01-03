@@ -734,15 +734,11 @@ ecma_op_object_get_by_magic_id (ecma_object_t *object_p, /**< the object */
  *         Returns with ECMA_VALUE_TRUE if the operation is
  *         successful. Otherwise it returns with an error object
  *         or ECMA_VALUE_FALSE.
- *
- *         Note: even if is_throw is false, the setter can throw an
- *         error, and this function returns with that error.
  */
 ecma_value_t
 ecma_op_object_put (ecma_object_t *object_p, /**< the object */
                     ecma_string_t *property_name_p, /**< property name */
-                    ecma_value_t value, /**< ecma value */
-                    bool is_throw) /**< flag that controls failure handling */
+                    ecma_value_t value) /**< ecma value */
 {
   JERRY_ASSERT (object_p != NULL
                 && !ecma_is_lexical_environment (object_p));
@@ -764,7 +760,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
           return ecma_op_array_object_set_length (object_p, value, 0);
         }
 
-        return ecma_reject (is_throw);
+        return ecma_reject ();
       }
       break;
     }
@@ -811,7 +807,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
             return ECMA_VALUE_TRUE;
           }
 
-          return ecma_reject (is_throw);
+          return ecma_reject ();
         }
 
         ecma_number_t num = ecma_string_to_number (property_name_p);
@@ -821,7 +817,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
         {
           ecma_deref_ecma_string (num_to_str);
 
-          return ecma_reject (is_throw);
+          return ecma_reject ();
         }
 
         ecma_deref_ecma_string (num_to_str);
@@ -854,7 +850,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
 
           if (index < ecma_string_get_length (prim_value_str_p))
           {
-            return ecma_reject (is_throw);
+            return ecma_reject ();
           }
         }
       }
@@ -868,7 +864,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
     {
       if (ecma_string_is_length (property_name_p))
       {
-        return ecma_reject (is_throw);
+        return ecma_reject ();
       }
 
       /* Get prototype physical property. */
@@ -944,11 +940,11 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
 
         if (ext_object_p->u.pseudo_array.type == ECMA_PSEUDO_ARRAY_ARGUMENTS)
         {
+          ECMA_PROPERTY_PUT_OPERATION_THROW_EXCEPTION ();
           return ecma_builtin_helper_def_prop (object_p,
                                                property_name_p,
                                                value,
-                                               ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE,
-                                               true); /* Failure handling */
+                                               ECMA_PROPERTY_CONFIGURABLE_ENUMERABLE_WRITABLE);
         }
       }
 
@@ -964,7 +960,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
         {
           if (!ecma_is_property_writable (ext_object_p->u.array.length_prop))
           {
-            return ecma_reject (is_throw);
+            return ecma_reject ();
           }
 
           ext_object_p->u.array.length = index + 1;
@@ -985,7 +981,7 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
 
   if (setter_p == NULL)
   {
-    return ecma_reject (is_throw);
+    return ecma_reject ();
   }
 
   ecma_value_t ret_value = ecma_op_function_call (setter_p,
@@ -1012,12 +1008,12 @@ ecma_op_object_put (ecma_object_t *object_p, /**< the object */
  *      returned value must be freed with ecma_free_value
  *
  * @return true - if deleted successfully
- *         false - or type error otherwise (based in 'is_throw')
+ *         false - or type error otherwise
  */
 ecma_value_t
 ecma_op_object_delete (ecma_object_t *obj_p, /**< the object */
-                       ecma_string_t *property_name_p, /**< property name */
-                       bool is_throw) /**< flag that controls failure handling */
+                       ecma_string_t *property_name_p) /**< property name */
+
 {
   JERRY_ASSERT (obj_p != NULL
                 && !ecma_is_lexical_environment (obj_p));
@@ -1030,16 +1026,14 @@ ecma_op_object_delete (ecma_object_t *obj_p, /**< the object */
     if (ext_object_p->u.pseudo_array.type == ECMA_PSEUDO_ARRAY_ARGUMENTS)
     {
       return ecma_op_arguments_object_delete (obj_p,
-                                              property_name_p,
-                                              is_throw);
+                                              property_name_p);
     }
   }
 
   JERRY_ASSERT_OBJECT_TYPE_IS_VALID (ecma_get_object_type (obj_p));
 
   return ecma_op_general_object_delete (obj_p,
-                                        property_name_p,
-                                        is_throw);
+                                        property_name_p);
 } /* ecma_op_object_delete */
 
 /**
@@ -1092,9 +1086,8 @@ ecma_op_object_default_value (ecma_object_t *obj_p, /**< the object */
 ecma_value_t
 ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
                                     ecma_string_t *property_name_p, /**< property name */
-                                    const ecma_property_descriptor_t *property_desc_p, /**< property
+                                    const ecma_property_descriptor_t *property_desc_p) /**< property
                                                                                         *   descriptor */
-                                    bool is_throw) /**< flag that controls failure handling */
 {
   JERRY_ASSERT (obj_p != NULL
                 && !ecma_is_lexical_environment (obj_p));
@@ -1115,16 +1108,14 @@ ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
     {
       return ecma_op_general_object_define_own_property (obj_p,
                                                          property_name_p,
-                                                         property_desc_p,
-                                                         is_throw);
+                                                         property_desc_p);
     }
 
     case ECMA_OBJECT_TYPE_ARRAY:
     {
       return ecma_op_array_object_define_own_property (obj_p,
                                                        property_name_p,
-                                                       property_desc_p,
-                                                       is_throw);
+                                                       property_desc_p);
     }
 
     default:
@@ -1141,8 +1132,7 @@ ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
         return ecma_op_arguments_object_define_own_property (obj_p,
                                                              property_name_p,
-                                                             property_desc_p,
-                                                             is_throw);
+                                                             property_desc_p);
 #ifndef CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN
       }
       /* ES2015 9.4.5.3 */
@@ -1161,7 +1151,7 @@ ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
             return ECMA_VALUE_TRUE;
           }
 
-          return ecma_reject (is_throw);
+          return ecma_reject ();
         }
 
         ecma_number_t num = ecma_string_to_number (property_name_p);
@@ -1171,7 +1161,7 @@ ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
         {
           ecma_deref_ecma_string (num_to_str);
 
-          return ecma_reject (is_throw);
+          return ecma_reject ();
         }
 
         ecma_deref_ecma_string (num_to_str);
@@ -1179,8 +1169,7 @@ ecma_op_object_define_own_property (ecma_object_t *obj_p, /**< the object */
 
       return ecma_op_general_object_define_own_property (obj_p,
                                                          property_name_p,
-                                                         property_desc_p,
-                                                         is_throw);
+                                                         property_desc_p);
 #endif /* !CONFIG_DISABLE_ES2015_TYPEDARRAY_BUILTIN */
       break;
     }
