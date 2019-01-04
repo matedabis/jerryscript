@@ -541,6 +541,9 @@ ecma_op_general_object_define_own_property (ecma_object_t *object_p, /**< the ob
   }
 
   if (property_desc_p->is_enumerable_defined)
+  
+  
+  
   {
     ecma_set_property_enumerable_attr (ext_property_ref.property_p, property_desc_p->is_enumerable);
   }
