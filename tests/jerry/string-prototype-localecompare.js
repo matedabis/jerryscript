@@ -51,3 +51,29 @@ try {
 } catch (e) {
   assert (e instanceof TypeError);
 }
+
+/* ES v5.1 15.5.4.9.2.
+   Checking behavior when first elements toString throws error*/
+try {
+  f = function () { throw new TypeError("err")};
+  var str1 = { toString : f };
+  var str2 = "";
+  String.prototype.localeCompare.call(str1, str2);
+  assert(false);
+} catch (e) {
+  assert(e instanceof TypeError);
+  assert(e.message == "err");
+}
+
+/* ES v5.1 15.5.4.9.3.
+   Checking behavior when second elements toString throws error*/
+try {
+  f = function () { throw new TypeError("e")};
+  var str1 = { toString : f };
+  var str2 = "";
+  String.prototype.localeCompare.call(str2, str1);
+  assert(false);
+} catch (e) {
+  assert(e instanceof TypeError);
+  assert(e.message == "e");
+}
