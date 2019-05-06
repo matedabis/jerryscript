@@ -3,6 +3,7 @@
 
 #include "jerry_extapi.h"
 #include <esp/uart.h>
+#include <esp/gpio.h>
 
 #define UART_OBJECT_NAME "Serial"
 #define UART_INIT "init"
@@ -10,6 +11,7 @@
 #define UART_WRITE "write"
 #define UART_FLUSH "flush"
 #define UART_AVAILABLE "available"
+#define UART_INIT_TAKE_STORE "init_take_store"
 
 #define UART_NUM 0
 

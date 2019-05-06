@@ -1,9 +1,12 @@
 function uCamIII (reset_pin) {
+  print("aaaaaaaaa")
   Serial.init(115200);
+  print("b")
   this.sync_attempts_max = 5;
   this.command_length = 6;
-
+  print("tutiraez")
   this.buffer = new ArrayBuffer (122);
+  print("array")
   this.imageBuffer = new Uint8Array (this.buffer);
   this.sync_command = [0xAA, 0x0D, 0x00, 0x00, 0x00, 0x00];
   this.sync_ack_reply_ext = [0xAA, 0x0D, 0x00, 0x00, 0x00, 0x00];
@@ -17,9 +20,11 @@ function uCamIII (reset_pin) {
   this.reset_command = [0xAA, 0x08, 0x00, 0x00, 0x00, 0xFF];
 
   this.image_pos = 0;
-  this.imageSize = 0
+  this.imageSize = 0;
   this.reset_pin = reset_pin;
+  print("15")
   GPIO.pinMode (reset_pin, GPIO.OUTPUT);
+  print("d")
 }
 
 uCamIII.prototype.init = function () {
@@ -156,12 +161,12 @@ uCamIII.prototype._getPicture = function () {
 uCamIII.prototype.storePicture = function (path) {
   var ack = [0xAA, 0x0E, 0x00, 0x00, 0x00, 0x00];
   var bytes;
-
+/***ITT TARTOTTAM**/
   if (this.image_pos == 0) {
     return false;
   }
 
-  var image = SD.open(path, SD.appendWrite);
+  // var image = SD.open(path, SD.appendWrite);
   var counter = 0;
   while (this.image_pos > 0) {
     if (this.image_pos < this.imageBuffer.buffer.byteLength) {
@@ -184,17 +189,26 @@ uCamIII.prototype.storePicture = function (path) {
     }
 
     var image_bytes = 0;
+    if (!WIFI.available()) {
+      WIFI.connect ("ESP8266", "Barackospite");
+    }
     for (var i = 0; i < bytes; i++) {
       var s = Serial.read();
       if (i >= 4 && i < bytes - 2) {
         this.imageBuffer[i - 4] = s;
         this.image_pos--;
         image_bytes++;
+        try {
+          WIFI.send("10.109.165.100", 5002, this.imageBuffer, "/picc.jpg", image_bytes)
+        } catch (e) {
+          print (e);
+          return false;
+        }
       }
     }
-    SD.write(image, this.imageBuffer, SD.asBinary, image_bytes);
+    // SD.write(image, this.imageBuffer, SD.asBinary, image_bytes); // WIFI send innen
   }
-  SD.close (image);
+  // SD.close (image);
 
   ack[4] = 0xF0;
   ack[5] = 0xF0;

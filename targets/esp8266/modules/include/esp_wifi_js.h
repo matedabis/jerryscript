@@ -24,6 +24,9 @@
 
 static uint8_t *message_buffer __attribute__((unused));
 
+jerry_value_t send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *server, uint32_t port,
+                                jerry_char_t *file_name, jerry_size_t file_name_length, void *forward);
+
 void register_wifi_object (jerry_value_t global_object);
 
 #endif
