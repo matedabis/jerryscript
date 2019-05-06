@@ -21,10 +21,10 @@ try:
     s.bind(server_address)
     s.listen(1)
 except socket.error:
-    print 'Failed to create socket'
+    print ('Failed to create socket')
     sys.exit()
 s.settimeout(5)
-print 'Socket Created'
+print ('Socket Created')
 
 while True:
     print ("Waiting for connection:")
@@ -40,11 +40,13 @@ while True:
     file_opened = False
     output_file = None
 
+    print ("Succesfully connected")
     while True:
         try:
             data = connection.recv(4096)
             if not data:
                 break
+            print(data)
             received += data
         except socket.timeout:
             break
@@ -95,6 +97,7 @@ while True:
             except IOError as e:
                 print("Couldn't open file (%s)." % e)
         elif content != '':
+            print(content)
             newFileByteArray = bytearray(content)
             try:
                 output_file.write(newFileByteArray)

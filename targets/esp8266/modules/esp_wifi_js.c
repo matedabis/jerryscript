@@ -329,7 +329,7 @@ DELCARE_HANDLER (wifi_send)
   }
 
   source = jerry_value_to_string (args_p [2]);
-  return send_data_on_tcp (source, data_length, (const char *) str_buf_p, port, file_name_buf_p, 0, NULL);
+  return send_data_on_tcp (source, data_length, (const char *) str_buf_p, port, file_name_buf_p, file_name_req_sz, NULL);
 }
 
 /*
