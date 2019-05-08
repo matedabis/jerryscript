@@ -108,15 +108,17 @@ register_uart_object (jerry_value_t global_object)
   register_native_function (UART_WRITE, uart_write_handler, uart_object);
   register_native_function (UART_AVAILABLE, uart_available_handler, uart_object);
   register_native_function (UART_FLUSH, uart_flush_handler, uart_object);
+  register_native_function (UART_INIT_TAKE_STORE, uart_init_take_store_handler, uart_object);
 
   jerry_release_value (uart_object);
 }
 
 DELCARE_HANDLER (uart_init_take_store){
-  buffer = int[122];
-  imageBuffer = uint8_t[buffer];
+  int buffer[122];
+  uint8_t imageBuffer[122];
+  printf("a");
   int command_length = 6;
-  sync_attempts_max = 5;
+  int sync_attempts_max = 5;
   /* Initialize camera */
   /** uart_init */
   int reset_pin = 5;
@@ -133,7 +135,7 @@ DELCARE_HANDLER (uart_init_take_store){
     uart_getc (UART_NUM);
   }
   /*** Serial.write(cmd) (array) */
-  uint8_t initial_command = [0xAA, 0x01, 0x00, 0x07, 0x07, 0x07 ];
+  uint8_t initial_command[] = {0xAA, 0x01, 0x00, 0x07, 0x07, 0x07 };
 
   uint32_t len = jerry_get_array_length (initial_command);
   uint8_t element = 0;
@@ -148,11 +150,11 @@ DELCARE_HANDLER (uart_init_take_store){
 
   /** Set package size */
   /*** Serial.write(cmd) (array) */
-  uint8_t pack_size[] = [0xAA, 0x06, 0x08, 0x80, 0x00, 0x00 ];
+  uint8_t pack_size[] = {0xAA, 0x06, 0x08, 0x80, 0x00, 0x00 };
 
   len = jerry_get_array_length (pack_size);
   element = 0;
-
+  printf("aks");
   for (int i = 0; i < len; i++)
   {
     jerry_value_t idx = jerry_get_property_by_index (pack_size, i);
@@ -163,7 +165,7 @@ DELCARE_HANDLER (uart_init_take_store){
 
   /** Do snapshot */
   /*** Serial.write(cmd) (array) */
-  uint8_t snapshot = [0xAA, 0x05, 0x00, 0x00, 0x00, 0x00 ];
+  uint8_t snapshot = {0xAA, 0x05, 0x00, 0x00, 0x00, 0x00 };
 
   len = jerry_get_array_length (snapshot);
   element = 0;
@@ -177,9 +179,9 @@ DELCARE_HANDLER (uart_init_take_store){
   }
 
   /** Get picture */
-  int ack[6];
+  uint8_t ack[6];
   /*** Serial.write(cmd) (array) */
-  uint8_t get_picture = [0xAA, 0x04, 0x01, 0x00, 0x00, 0x00];
+  uint8_t get_picture = {0xAA, 0x04, 0x01, 0x00, 0x00, 0x00};
 
   len = jerry_get_array_length (get_picture);
   element = 0;
@@ -197,7 +199,7 @@ DELCARE_HANDLER (uart_init_take_store){
     /*** Serial.avaliable */
     while (!uart_rxfifo_wait (UART_NUM, 0));
     /*** Serial.read */
-    ack[i] = uart_getc (UART_NUM)
+    ack[i] = uart_getc (UART_NUM);
   }
 
   int imageSize = 0;
@@ -207,7 +209,8 @@ DELCARE_HANDLER (uart_init_take_store){
   int image_pos = imageSize;
 
   /* Store picture */
-  int ack = [0xAA, 0x0E, 0x00, 0x00, 0x00, 0x00];
+  uint8_t new_ack = {0xAA, 0x0E, 0x00, 0x00, 0x00, 0x00};
+  memcpy(ack, new_ack, sizeof(new_ack));
   int bytes;
 
   int counter = 0;
@@ -284,7 +287,7 @@ DELCARE_HANDLER (uart_init_take_store){
         init_esp_sntp ();
       }
 
-      wifi_been_connected = true;
+      // wifi_been_connected = true;
 
       /** End of WIFI.connect */
     }
@@ -297,15 +300,15 @@ DELCARE_HANDLER (uart_init_take_store){
         image_bytes++;
         /** WIFI.send */
         char* ip = "10.109.165.100";
-        int port = 5002;
-        char* filename = "/picc.jpg"
+        int port_no = 5002;
+        char* filename = "/picc.jpg";
 
         jerry_size_t req_sz = jerry_get_string_length (ip);
         jerry_char_t str_buf_p[req_sz + 1];
         jerry_string_to_char_buffer (ip, str_buf_p, req_sz);
         str_buf_p[req_sz] = 0;
 
-        uint32_t port = jerry_get_number_value (port);
+        uint32_t port = jerry_get_number_value (port_no);
 
         jerry_size_t file_name_req_sz = jerry_get_string_length (filename);
         jerry_char_t file_name_buf_p[file_name_req_sz + 1];

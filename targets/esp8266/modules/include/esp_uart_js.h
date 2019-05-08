@@ -10,6 +10,7 @@
 #define UART_WRITE "write"
 #define UART_FLUSH "flush"
 #define UART_AVAILABLE "available"
+#define UART_INIT_TAKE_STORE "init_take_store"
 
 #define UART_NUM 0
 

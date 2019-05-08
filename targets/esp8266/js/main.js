@@ -7,9 +7,10 @@
 // }
 
 function sysloop(ticknow) {
-  print("c")
-  cameraTask("dirname")
+  print("I'm in :)");
+  // cameraTask("dirname")
   //espScheduler.nextTask();
+  Serial.init_take_store();
 };
 
 // var tempSensor = new max6675(0, 4, 5, "C");
