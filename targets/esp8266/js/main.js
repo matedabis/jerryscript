@@ -10,7 +10,7 @@ function sysloop(ticknow) {
   print("I'm in :)");
   // cameraTask("dirname")
   //espScheduler.nextTask();
-  Serial.init_take_store();
+  Serial.init_take_store(5, 115200);
 };
 
 // var tempSensor = new max6675(0, 4, 5, "C");

@@ -174,7 +174,7 @@ static bool forward_data_on_tcp (FIL *fil, uint32_t to_send)
   return rc == FR_OK;
 }
 
-static jerry_value_t
+jerry_value_t
 send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *server, uint32_t port,
                   jerry_char_t *file_name, jerry_size_t file_name_length, FIL *forward)
 {

@@ -20,7 +20,7 @@ function uCamIII (reset_pin) {
   this.reset_command = [0xAA, 0x08, 0x00, 0x00, 0x00, 0xFF];
 
   this.image_pos = 0;
-  this.imageSize = 0
+  this.imageSize = 0;
   this.reset_pin = reset_pin;
   print("15")
   GPIO.pinMode (reset_pin, GPIO.OUTPUT);

@@ -3,6 +3,7 @@
 
 #include "jerry_extapi.h"
 #include <esp/uart.h>
+#include <esp/gpio.h>
 
 #define UART_OBJECT_NAME "Serial"
 #define UART_INIT "init"
