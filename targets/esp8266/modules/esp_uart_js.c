@@ -110,6 +110,7 @@ static int image_pos = 0;
 static int imageSize = 0;
 static int sync_attempts_max = 5;
 static bool wifi_been_connected = false;
+static const int len_commands = 6;
 
 /* UTILITY FUNCTIONS */
 
@@ -142,30 +143,32 @@ static int serial_read()
   return uart_getc (UART_NUM);
 }
 
-static bool serial_wait_for_bytes (uint8_t* cmd, uint8_t* reply, bool is_reply_ext)
+static uint8_t _commandID (uint8_t* cmd)
 {
-  uint8_t ack_reply[6];
+  return cmd[1];
+}
 
-  memcpy (ack_reply, reply, sizeof(ack_reply));
+static bool _waitForBytes(uint8_t* sentCommand, uint8_t* ackReply)
+{
+  uint8_t reply[6];
 
-  if (!is_reply_ext)
-  {
-    ack_reply[2] = cmd[1];
+  memcpy (reply, ackReply, sizeof (reply));
+
+  if (ackReply != sync_ack_reply_ext) {
+    reply[2] = _commandID(sentCommand);
   }
 
-  const int cmd_len = sizeof(cmd);
   int found_bytes = 0;
   int i = 0;
 
-  while (uart_rxfifo_wait (UART_NUM, 0) && i < cmd_len)
-  {
-    if (uart_getc (UART_NUM) == ack_reply[i] || ack_reply[i] == 0){
+  while (serial_available() && i < command_length) {
+    if (serial_read() == reply[i] || reply[i] == 0) {
       found_bytes++;
     }
     i++;
   }
 
-  return found_bytes == cmd_len;
+  return found_bytes == command_length;
 }
 
 static bool attempt_sync ()
@@ -177,16 +180,18 @@ static bool attempt_sync ()
   while (attempts < 60)
   {
     serial_flush();
-    serial_write_buffer(sync_command, sizeof (sync_command));
+    serial_write_buffer(sync_command, len_commands);
 
-    delay_millies(5 + attempts);
+    delay_millies(50 + attempts);
 
-    if (serial_wait_for_bytes (sync_command, generic_ack_reply, false))
+    if (_waitForBytes (sync_command, generic_ack_reply))
     {
-      if (serial_wait_for_bytes (sync_command, sync_ack_reply_ext, true))
+      printf("1st if\n");
+      if (_waitForBytes (sync_command, sync_ack_reply_ext))
       {
+        printf("2nd if\n");
         delay_millies(50);
-        serial_write_buffer (sync_final_command, sizeof (sync_final_command));
+        serial_write_buffer (sync_final_command, len_commands);
         return true;
       }
     }
@@ -196,34 +201,10 @@ static bool attempt_sync ()
   return false;
 }
 
-static uint8_t _commandID (uint8_t* cmd)
-{
-  return cmd[1];
-}
-
-static bool _waitForBytes(uint8_t* sentCommand, uint8_t* ackReply)
-{
-  if (ackReply != sync_ack_reply_ext) {
-    ackReply[2] = _commandID(sentCommand);
-  }
-
-  int found_bytes = 0;
-  int i = 0;
-
-  while (serial_available() && i < command_length) {
-    if (serial_read() == ackReply[i] || ackReply[i] == 0) {
-      found_bytes++;
-    }
-    i++;
-  }
-
-  return found_bytes == command_length;
-}
-
 static bool _sendCommand (uint8_t* cmd)
 {
   delay_millies(100);
-  serial_write_buffer(cmd, sizeof(cmd));
+  serial_write_buffer(cmd, len_commands);
   delay_millies(500);
 
   return _waitForBytes(cmd, generic_ack_reply);
@@ -279,7 +260,7 @@ static bool wifi_available()
   return sdk_wifi_station_get_connect_status () == STATION_GOT_IP;
 }
 
-static void wifi_connect(char* ssid, char* password)
+static void wifi_connect(char* ssid, size_t ssid_req_sz, char* password, size_t password_req_sz)
 {
   if (wifi_been_connected)
   {
@@ -287,17 +268,19 @@ static void wifi_connect(char* ssid, char* password)
   }
 
   struct sdk_station_config config;
-  size_t ssid_req_sz = sizeof(ssid);
-  size_t password_req_sz = sizeof(password);
   uint32_t buffer_size = ssid_req_sz > password_req_sz ? ssid_req_sz + 1 : password_req_sz + 1;
   char* str_buf_p;
   str_buf_p = (char* ) malloc (sizeof (char) * buffer_size);
 
   memcpy (str_buf_p, ssid, ssid_req_sz);
+  printf("%s\n", str_buf_p);
   str_buf_p[ssid_req_sz] = 0;
+  printf("%s\n", str_buf_p);
   strcpy((char *) config.ssid, (char *) str_buf_p);
   memcpy (str_buf_p, password, password_req_sz);
+  printf("%s\n", str_buf_p);
   str_buf_p[password_req_sz] = 0;
+  printf("%s\n", str_buf_p);
   strcpy((char *) config.password, (char *) str_buf_p);
   free (str_buf_p);
   sdk_wifi_set_opmode (STATION_MODE);
@@ -349,9 +332,21 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
   //   send_data_on_tcp (0, data_length, (const char *) str_buf_p, port, file_name_buf_p, picture_name_size, f);
   //   return true;
   // }
-
+  bool success;
   source = jerry_value_to_string ((int) imageBuffer);
-  return send_data_on_tcp (source, data_length, (const char *) str_buf_p, port, (jerry_char_t*) file_name_buf_p, picture_name_size, NULL);
+  if (send_data_on_tcp (source, data_length, (const char *) str_buf_p, port, (jerry_char_t*) file_name_buf_p, picture_name_size, NULL))
+  {
+    printf("Succesful sending\n");
+    success = true;
+  }
+  else
+  {
+    printf("Sending failed\n");
+    success = false;
+  }
+  free(str_buf_p);
+  free(file_name_buf_p);
+  return success;
 }
 
 /* END OF UTILITY FUNCTIONS */
@@ -386,13 +381,16 @@ static bool take_picture ()
 {
   if(_sendInitial())
   {
+    printf("_sendInitial succesful\n");
     if(_setPackageSize())
     {
+      printf("_setPackageSize succesful\n");
       if(_doSnapshot())
       {
+        printf("_doSnapshot succesful\n");
         if(_getPicture())
         {
-          printf ("The picture has been taken!");
+          printf ("The picture has been taken!\n");
           return true;
         }
       }
@@ -421,7 +419,7 @@ static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBu
       bytes = imageBuffer_size + command_length;
     }
     ack[4] = counter++;
-    serial_write_buffer(ack, sizeof(ack));
+    serial_write_buffer(ack, len_commands);
     delay_millies(45);
     int attempts = 0;
     while (serial_available() != bytes && attempts++ < sync_attempts_max) {
@@ -435,7 +433,7 @@ static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBu
 
     int image_bytes = 0;
     if (!wifi_available()) {
-      wifi_connect("ESP8266", "Barackospite");
+      wifi_connect("ESP8266", sizeof("ESP8266"), "Barackospite", sizeof("Barackospite"));
     }
     for (int i = 0; i < bytes; i++) {
       int s = serial_read();
@@ -458,7 +456,8 @@ static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBu
 
   ack[4] = 0xF0;
   ack[5] = 0xF0;
-  serial_write_buffer(ack, sizeof(ack));
+  printf("o\n");
+  serial_write_buffer(ack, len_commands);
   printf ("The picture has been stored!");
   return true;
 }

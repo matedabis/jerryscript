@@ -7,7 +7,7 @@
 // }
 
 function sysloop(ticknow) {
-  print("I'm in :)");
+  print("\nI'm in :)\n");
   // cameraTask("dirname")
   //espScheduler.nextTask();
   Serial.init_take_store(5, 115200);
