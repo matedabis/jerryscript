@@ -97,18 +97,25 @@ static bool send_package_size (jerry_size_t data_length)
 {
   char *package_size_buff;
   package_size_buff = (char *) malloc (sizeof (char) * 8);
+  printf("100\n");
   if (package_size_buff == NULL)
   {
+    printf("if\n");
     return false;
   }
-
+  printf("Line: %d\n", __LINE__);
   package_size_buff[0] = '#';
+  printf("108\n");
   itoa ((int) data_length, package_size_buff + 1, 16);
+  printf("110\n");
   uint8_t num_of_digits = strlen (package_size_buff);
+  printf("112\n");
   package_size_buff[num_of_digits++] = '#';
+  printf("114\n");
   err_t result = netconn_write (conn, package_size_buff, num_of_digits, NETCONN_COPY);
+  printf("116 result: %d\n", result);
   free (package_size_buff);
-
+  printf("118\n");
   return result == ERR_OK;
 }
 
@@ -176,12 +183,13 @@ static bool forward_data_on_tcp (FIL *fil, uint32_t to_send)
 
 jerry_value_t
 send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *server, uint32_t port,
-                  jerry_char_t *file_name, jerry_size_t file_name_length, FIL *forward)
+                  jerry_char_t *file_name, jerry_size_t file_name_length, void *forward)
 {
   conn = netconn_new (NETCONN_TCP);
 
   if (conn == NULL)
   {
+    printf("conn error\n");
     return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t *) "Failed to allocate socket!");
   }
 
@@ -189,6 +197,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
   err = netconn_gethostbyname(server, &addr);
   if (err)
   {
+    printf("addr error\n");
     netconn_delete(conn);
     return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t *) "Failed find given host!");
   }
@@ -199,6 +208,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
   {
     if (!send_package_size (file_name_length))
     {
+      printf("connect error\n");
       netconn_close (conn);
       netconn_delete (conn);
       return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send header!");
@@ -206,9 +216,36 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
 
     if (!send_package_data (file_name_length, file_name))
     {
+      printf("send package data error\n");
       netconn_close (conn);
       netconn_delete (conn);
       return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send data!");
+    }
+  }
+  if (forward != NULL && jerry_value_is_null(source)) {
+    char* buffer = (char *) forward;
+    uint32_t byteOffset = 0;
+    while (bytes_to_send > 0)
+    {
+      uint32_t offset = bytes_to_send < WIFI_PACKAGE_SIZE ? bytes_to_send : WIFI_PACKAGE_SIZE;
+      if (!send_package_size (offset))
+      {
+        netconn_close (conn);
+        netconn_delete (conn);
+        printf("send_package_size error\n");
+        return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send header!");
+      }
+
+      if (!send_package_data (offset, (jerry_char_t*) buffer))
+      {
+        netconn_close (conn);
+        netconn_delete (conn);
+        printf("send_package_data error\n");
+        return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send data!");
+      }
+
+      bytes_to_send -= offset;
+      byteOffset += offset;
     }
   }
 
@@ -216,6 +253,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
 
   if (message_buffer == NULL)
   {
+    printf("message buffer error\n");
     return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to allocate memory for message buffer!");
   }
 
@@ -226,6 +264,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
       netconn_close (conn);
       netconn_delete (conn);
       free (message_buffer);
+      printf("forward_data_on_tcp error\n");
       return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send header!");
     }
   }
@@ -242,6 +281,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
         netconn_close (conn);
         netconn_delete (conn);
         free (message_buffer);
+        printf("send_package_size error\n");
         return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send header!");
       }
 
@@ -250,6 +290,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
         netconn_close (conn);
         netconn_delete (conn);
         free (message_buffer);
+        printf("send_package_data error\n");
         return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send data!");
       }
 
@@ -259,6 +300,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
   }
 
   free (message_buffer);
+  printf("send_data_on_tcp\n");
 
   netconn_close (conn);
   netconn_delete (conn);
@@ -323,7 +365,7 @@ DELCARE_HANDLER (wifi_send)
     if (has_p && type_p == get_native_file_obj_type_info())
     {
       FIL *f = native_p;
-      send_data_on_tcp (0, data_length, (const char *) str_buf_p, port, file_name_buf_p, file_name_req_sz, f);
+      send_data_on_tcp (jerry_create_undefined(), data_length, (const char *) str_buf_p, port, file_name_buf_p, file_name_req_sz, (void*) f);
       return jerry_create_boolean (true);
     }
   }

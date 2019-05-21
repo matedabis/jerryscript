@@ -311,16 +311,16 @@ static void wifi_connect(char* ssid, size_t ssid_req_sz, char* password, size_t 
 static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuffer, char* picture_name, size_t picture_name_size, size_t image_bytes)
 {
   /* Is it acceptable this way? for original method, see esp_wifi_js.c: wifi_send */
-  char* str_buf_p = (char* ) malloc (ip_size);
-  memcpy (str_buf_p, ip, ip_size);
+  // char* str_buf_p = (char* ) malloc (ip_size);
+  // memcpy (str_buf_p, ip, ip_size);
 
   uint32_t port = (uint32_t) port_no;
-
-  char* file_name_buf_p = (char* ) malloc (picture_name_size);
-  memcpy (file_name_buf_p, picture_name, picture_name_size);
-
-  uint32_t data_length = (uint32_t) image_bytes;
-  jerry_value_t source = jerry_create_undefined(); /**???*/
+  //
+  // char* file_name_buf_p = (char* ) malloc (picture_name_size);
+  // memcpy (file_name_buf_p, picture_name, picture_name_size);
+  //
+  // uint32_t data_length = (uint32_t) image_bytes;
+  // jerry_value_t source = jerry_create_undefined(); /**???*/
 
   // Not needed?
   // void *native_p;
@@ -333,8 +333,9 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
   //   return true;
   // }
   bool success;
-  source = jerry_value_to_string ((int) imageBuffer);
-  if (send_data_on_tcp (source, data_length, (const char *) str_buf_p, port, (jerry_char_t*) file_name_buf_p, picture_name_size, NULL))
+  // source = jerry_value_to_string ((int) imageBuffer);
+  printf(" imageBuffer: %p, ip: %p, picture_name %p\n", imageBuffer, ip, picture_name);
+  if (send_data_on_tcp (jerry_create_null(), image_bytes, ip, port, (jerry_char_t*) picture_name, picture_name_size, imageBuffer))
   {
     printf("Succesful sending\n");
     success = true;
@@ -344,8 +345,8 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
     printf("Sending failed\n");
     success = false;
   }
-  free(str_buf_p);
-  free(file_name_buf_p);
+  // free(str_buf_p);
+  // free(file_name_buf_p);
   return success;
 }
 
@@ -400,10 +401,12 @@ static bool take_picture ()
   return false;
 }
 
-static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBuffer_size)
+static bool storePicture (char* image_name, size_t image_name_size, uint8_t* imageBuffer, size_t imageBuffer_size)
 {
   uint8_t ack[] = {0xAA, 0x0E, 0x00, 0x00, 0x00, 0x00};
   int bytes;
+  char ip[] = "10.109.165.100";
+  size_t ip_size = sizeof(ip);
 
   if (image_pos == 0) {
     return false;
@@ -441,14 +444,14 @@ static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBu
         imageBuffer[i - 4] = s;
         image_pos--;
         image_bytes++;
-        if (wifi_send("10.109.165.100", sizeof("10.109.165.100"), 5002, imageBuffer, "/picc.jpg", sizeof("/picc.jpg"), image_bytes))
-        {
-          printf ("Data sent\n");
-        } else {
-          printf ("Data can not be sent\n");
-          return false;
-        }
       }
+    }
+    if (wifi_send(ip, ip_size, 5002, imageBuffer, image_name, image_name_size, image_bytes))
+    {
+      printf ("Data sent\n");
+    } else {
+      printf ("Data can not be sent\n");
+      return false;
     }
     // SD.write(image, this.imageBuffer, SD.asBinary, image_bytes); // WIFI send innen
   }
@@ -470,7 +473,8 @@ DELCARE_HANDLER (uart_init_take_store){
   /* Initialize camera */
   /** uart_init */
   size_t imageBuffer_size = sizeof(imageBuffer);
-  char* image_name = "pic.jpg";
+  char image_name[] = "/pic.jpg";
+  size_t image_name_size = sizeof(image_name);
   int reset_pin = -1;
   int baud_rate = -1;
 
@@ -505,7 +509,7 @@ DELCARE_HANDLER (uart_init_take_store){
     /* Take picture*/
     if(take_picture ())
     {
-      storePicture(image_name, imageBuffer, imageBuffer_size);
+      storePicture(image_name, image_name_size, imageBuffer, imageBuffer_size);
     } else {
       printf ("Cannot take picture with uCam-iii!");
     }
