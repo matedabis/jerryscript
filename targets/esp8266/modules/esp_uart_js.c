@@ -320,7 +320,7 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
   memcpy (file_name_buf_p, picture_name, picture_name_size);
 
   uint32_t data_length = (uint32_t) image_bytes;
-  jerry_value_t source = jerry_create_undefined(); /**???*/
+  // jerry_value_t source = jerry_create_undefined(); /**???*/
 
   // Not needed?
   // void *native_p;
@@ -333,8 +333,13 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
   //   return true;
   // }
   bool success;
-  source = jerry_value_to_string ((int) imageBuffer);
-  if (send_data_on_tcp (source, data_length, (const char *) str_buf_p, port, (jerry_char_t*) file_name_buf_p, picture_name_size, NULL))
+  // source = jerry_value_to_string ((int) imageBuffer);
+  //
+  // for (int i = 0; i < 122; i++) {
+  //   printf("image buffer %d: %d\n", i, imageBuffer[i]);
+  // }
+  // printf("IMAGE BYTES: %d data_length: %d\n", image_bytes, data_length);
+  if (send_data_on_tcp (imageBuffer, data_length, (const char *) str_buf_p, port, "/pic.jpg", sizeof("/pic.jpg"), NULL))
   {
     printf("Succesful sending\n");
     success = true;
@@ -400,10 +405,11 @@ static bool take_picture ()
   return false;
 }
 
-static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBuffer_size)
+static bool storePicture (char* image_name, size_t image_name_size, uint8_t* imageBuffer, size_t imageBuffer_size)
 {
   uint8_t ack[] = {0xAA, 0x0E, 0x00, 0x00, 0x00, 0x00};
   int bytes;
+  char ip[] = "10.109.165.100";
 
   if (image_pos == 0) {
     return false;
@@ -441,14 +447,19 @@ static bool storePicture (char* image_name, uint8_t* imageBuffer, size_t imageBu
         imageBuffer[i - 4] = s;
         image_pos--;
         image_bytes++;
-        if (wifi_send("10.109.165.100", sizeof("10.109.165.100"), 5002, imageBuffer, "/picc.jpg", sizeof("/picc.jpg"), image_bytes))
-        {
-          printf ("Data sent\n");
-        } else {
-          printf ("Data can not be sent\n");
-          return false;
-        }
       }
+    }
+    // for (int i = 0; i < 122; i++) {
+    //   printf("image buffer %d: %d\n", i, imageBuffer[i]);
+    // }
+    // printf("IMAGE BYTES: %d\n", image_bytes);
+
+    if (wifi_send(ip, sizeof(ip), 5002, imageBuffer, image_name, image_name_size, imageBuffer_size))
+    {
+      printf ("Data sent\n");
+    } else {
+      printf ("Data can not be sent\n");
+      return false;
     }
     // SD.write(image, this.imageBuffer, SD.asBinary, image_bytes); // WIFI send innen
   }
@@ -470,7 +481,7 @@ DELCARE_HANDLER (uart_init_take_store){
   /* Initialize camera */
   /** uart_init */
   size_t imageBuffer_size = sizeof(imageBuffer);
-  char* image_name = "pic.jpg";
+  char image_name[] = "/pic.jpg";
   int reset_pin = -1;
   int baud_rate = -1;
 
@@ -500,12 +511,17 @@ DELCARE_HANDLER (uart_init_take_store){
   gpio_enable (reset_pin, 1);
 
   /* Init */
-  if(init (reset_pin))
+  if (init (reset_pin))
   {
     /* Take picture*/
-    if(take_picture ())
+    if (take_picture ())
     {
-      storePicture(image_name, imageBuffer, imageBuffer_size);
+      if (storePicture(image_name, sizeof(image_name), imageBuffer, imageBuffer_size))
+      {
+        printf("Picture stored\n");
+      } else {
+        printf("Failed to store picture\n");
+      }
     } else {
       printf ("Cannot take picture with uCam-iii!");
     }

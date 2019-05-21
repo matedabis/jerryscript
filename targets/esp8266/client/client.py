@@ -47,7 +47,10 @@ while True:
             if not data:
                 break
             print(data)
-            received += data
+            if received == "":
+                received = data
+            else:
+                received += data
         except socket.timeout:
             break
 
@@ -60,6 +63,7 @@ while True:
 
         content_start = 0
         content_end = 0
+        # print("66\n")
 
         for i, c in enumerate(received[curr_pos:]):
             if c == '#' and header_info_start == 0 and content_start == 0:
@@ -74,14 +78,23 @@ while True:
                 header_info_start = 0
                 header_info_end = 0
 
+            # print("start: %s, end: %s" % (str(content_start), str(content_end)))
             if content_start != 0 and content_length != 0:
                 content = received[content_start : content_start + content_length]
+                print("83")
                 curr_pos += i + content_length + 2
                 content_start = 0
                 content_end = 0
                 break
 
+        # print(received)
+        # print("87\n")
+        # print("opened: %s" % (str(file_opened)))
+        # print("content.startswith('/'): %s"  % (str(content.startswith('/'))))
+        # print("content: %s" % (content))
+        # print("content.split('.')[1] in ['txt', 'json', 'jpg']: %s" % (str(content.split('.')[1] in ['txt', 'json', 'jpg'])))
         if not file_opened and content.startswith('/') and content.split('.')[1] in ['txt', 'json', 'jpg']:
+            # print("89\n")
             file_mode =  "wb" if content.split('.')[1] == 'jpg' else "w"
             whole_path = "data" + content
             print ("Write to: ", whole_path)
@@ -97,10 +110,14 @@ while True:
             except IOError as e:
                 print("Couldn't open file (%s)." % e)
         elif content != '':
+            print("105\n")
             print(content)
             newFileByteArray = bytearray(content)
             try:
+                print("data added to %s" % whole_path)
                 output_file.write(newFileByteArray)
             except IOError as e:
                 print("Couldn't write to file (%s)." % e)
+        # print("113\n")
+    print("114\n")
     output_file.close();
