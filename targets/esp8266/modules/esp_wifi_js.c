@@ -185,13 +185,13 @@ jerry_value_t
 send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *server, uint32_t port,
                   jerry_char_t *file_name, jerry_size_t file_name_length, void *forward)
 {
-  conn = netconn_new (NETCONN_TCP);
-
-  if (conn == NULL)
-  {
-    printf("conn error\n");
-    return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t *) "Failed to allocate socket!");
-  }
+  // conn = netconn_new (NETCONN_TCP);
+  //
+  // if (conn == NULL)
+  // {
+  //   printf("conn error\n");
+  //   return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t *) "Failed to allocate socket!");
+  // }
 
   ip_addr_t addr;
   err = netconn_gethostbyname(server, &addr);
@@ -222,6 +222,7 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
       return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t * ) "Failed to send data!");
     }
   }
+
   if (forward != NULL && jerry_value_is_null(source)) {
     char* buffer = (char *) forward;
     uint32_t byteOffset = 0;
@@ -247,6 +248,11 @@ send_data_on_tcp (jerry_value_t source, uint32_t bytes_to_send, const char *serv
       bytes_to_send -= offset;
       byteOffset += offset;
     }
+
+    // netconn_close (conn);
+    // netconn_delete (conn);
+
+    return jerry_create_boolean (true);
   }
 
   message_buffer = malloc (sizeof (char) * WIFI_PACKAGE_SIZE);

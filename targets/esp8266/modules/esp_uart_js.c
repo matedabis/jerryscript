@@ -111,6 +111,7 @@ static int imageSize = 0;
 static int sync_attempts_max = 5;
 static bool wifi_been_connected = false;
 static const int len_commands = 6;
+struct netconn *conn = NULL;
 
 /* UTILITY FUNCTIONS */
 
@@ -334,9 +335,18 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
   // }
   bool success;
   // source = jerry_value_to_string ((int) imageBuffer);
-  printf(" imageBuffer: %p, ip: %p, picture_name %p\n", imageBuffer, ip, picture_name);
+  /* Connect to client */
+  // conn = netconn_new (NETCONN_TCP);
+  //
+  // if (conn == NULL)
+  // {
+  //   printf("conn error\n");
+  //   return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t *) "Failed to allocate socket!");
+  // }
+
   if (send_data_on_tcp (jerry_create_null(), image_bytes, ip, port, (jerry_char_t*) picture_name, picture_name_size, imageBuffer))
   {
+    printf(" imageBuffer: %p, ip: %p, picture_name %p\n", imageBuffer, ip, picture_name);
     printf("Succesful sending\n");
     success = true;
   }
@@ -345,8 +355,10 @@ static bool wifi_send(char* ip, size_t ip_size , int port_no, uint8_t* imageBuff
     printf("Sending failed\n");
     success = false;
   }
-  // free(str_buf_p);
-  // free(file_name_buf_p);
+
+  /* Close connection to client */
+  // netconn_close (conn);
+  // netconn_delete (conn);
   return success;
 }
 
@@ -446,7 +458,21 @@ static bool storePicture (char* image_name, size_t image_name_size, uint8_t* ima
         image_bytes++;
       }
     }
-    if (wifi_send(ip, ip_size, 5002, imageBuffer, image_name, image_name_size, image_bytes))
+
+    /* set connection with client */
+    if (conn == NULL)
+    {
+      conn = netconn_new (NETCONN_TCP);
+    }
+
+    if (conn == NULL)
+    {
+      printf("conn error\n");
+      return jerry_create_error (JERRY_ERROR_COMMON, (const jerry_char_t *) "Failed to allocate socket!");
+    }
+    /*______________________________________________*/
+
+    if (wifi_send(ip, ip_size, 5002, imageBuffer, counter == 1 ? image_name : NULL, image_name_size, image_bytes))
     {
       printf ("Data sent\n");
     } else {
@@ -455,6 +481,10 @@ static bool storePicture (char* image_name, size_t image_name_size, uint8_t* ima
     }
     // SD.write(image, this.imageBuffer, SD.asBinary, image_bytes); // WIFI send innen
   }
+  /* Close connection with client */
+  netconn_close (conn);
+  netconn_delete (conn);
+  /* ______________________________________________*/
   // SD.close (image);
 
   ack[4] = 0xF0;
@@ -474,7 +504,7 @@ DELCARE_HANDLER (uart_init_take_store){
   /** uart_init */
   size_t imageBuffer_size = sizeof(imageBuffer);
   char image_name[] = "/pic.jpg";
-  size_t image_name_size = sizeof(image_name);
+  size_t image_name_size = sizeof(image_name) - 1;
   int reset_pin = -1;
   int baud_rate = -1;
 
