@@ -5,6 +5,7 @@ import os
 import sys
 from time import sleep, gmtime, strftime
 import argparse
+import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ip", help="ESP8266 ip:port")
@@ -25,6 +26,7 @@ except socket.error:
     sys.exit()
 s.settimeout(5)
 print ('Socket Created')
+counter = 0
 
 while True:
     print ("Waiting for connection:")
@@ -45,10 +47,12 @@ while True:
         try:
             data = connection.recv(4096)
             if not data:
+                print("no data")
                 break
             print(data)
             received += data
         except socket.timeout:
+            # print("Timeout\n")
             break
 
     content = ""
@@ -81,9 +85,14 @@ while True:
                 content_end = 0
                 break
 
-        if not file_opened and content.startswith('/') and content.split('.')[1] in ['txt', 'json', 'jpg']:
+        print("File opened: %s, content_start: %s\n" % (str(file_opened), str(content.startswith('&/'))))
+        # if (len(content.split()) > 1):
+            # print(content.split())
+            # print("content.split remaining: %s" % str((content.split('.')[1])[:3] in ['txt', 'json', 'jpg']))
+        if not file_opened and content.startswith('/') and content.split('.')[1][:3] in ['txt', 'json', 'jpg']:
             file_mode =  "wb" if content.split('.')[1] == 'jpg' else "w"
-            whole_path = "data" + content
+            whole_path = "data" + content.split('.')[0]  + datetime.datetime.now().isoformat() + content.split('.')[1]
+            counter += 1
             print ("Write to: ", whole_path)
             try:
                 if not os.path.exists(os.path.dirname(whole_path)):
