@@ -484,6 +484,7 @@ static bool storePicture (char* image_name, size_t image_name_size, uint8_t* ima
   /* Close connection with client */
   netconn_close (conn);
   netconn_delete (conn);
+  free (conn);
   /* ______________________________________________*/
   // SD.close (image);
 
